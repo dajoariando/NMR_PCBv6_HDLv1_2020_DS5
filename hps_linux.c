@@ -543,47 +543,47 @@ void print_warning_ad5724r(uint8_t en_mesg)
 	{
 		if (dataread & DAC_A_PU)
 		{
-			printf("\tDAC A is up");
+			printf("\tDAC A is up\n");
 		}
 		else
 		{
-			printf("\tDAC A is down");
+			printf("\tDAC A is down\n");
 		}
 
 		if (dataread & DAC_B_PU)
 		{
-			printf("\tDAC B is up");
+			printf("\tDAC B is up\n");
 		}
 		else
 		{
-			printf("\tDAC B is down");
+			printf("\tDAC B is down\n");
 		}
 
 		if (dataread & DAC_C_PU)
 		{
-			printf("\tDAC C is up");
+			printf("\tDAC C is up\n");
 		}
 		else
 		{
-			printf("\tDAC C is down");
+			printf("\tDAC C is down\n");
 		}
 
 		if (dataread & DAC_D_PU)
 		{
-			printf("\tDAC D is up");
+			printf("\tDAC D is up\n");
 		}
 		else
 		{
-			printf("\tDAC D is down");
+			printf("\tDAC D is down\n");
 		}
 
 		if (dataread & REF_PU)
 		{
-			printf("\tVREF is up");
+			printf("\tVREF is up\n");
 		}
 		else
 		{
-			printf("\tVREF is down");
+			printf("\tVREF is down\n");
 		}
 	}
 
@@ -2053,45 +2053,45 @@ void close_system()
  }
  */
 
-// Preamp gain characterization (rename the output to "pamp_char")
-int main(int argc, char * argv[])
-{
-	printf("Pamp characterization measurement starts\n");
+/* Preamp gain characterization (rename the output to "pamp_char")
+ int main(int argc, char * argv[])
+ {
+ printf("Pamp characterization measurement starts\n");
 
-	// input parameters
-	double startfreq = atof(argv[1]);
-	double stopfreq = atof(argv[2]);
-	double spacfreq = atof(argv[3]);
-	double sampfreq = atof(argv[4]);
+ // input parameters
+ double startfreq = atof(argv[1]);
+ double stopfreq = atof(argv[2]);
+ double spacfreq = atof(argv[3]);
+ double sampfreq = atof(argv[4]);
 
-	open_physical_memory_device();
-	mmap_peripherals();
-	// init_default_system_param();
+ open_physical_memory_device();
+ mmap_peripherals();
+ // init_default_system_param();
 
-	ctrl_out = alt_read_word(h2p_ctrl_out_addr);
-	alt_write_word((h2p_ctrl_out_addr), (ctrl_out & (~TX_OPA_EN))); // disable the TX opamp
+ ctrl_out = alt_read_word(h2p_ctrl_out_addr);
+ alt_write_word((h2p_ctrl_out_addr), (ctrl_out & (~TX_OPA_EN))); // disable the TX opamp
 
-	unsigned int samples = (unsigned int) (lround(sampfreq / spacfreq)); // the number of ADC samples taken
+ unsigned int samples = (unsigned int) (lround(sampfreq / spacfreq)); // the number of ADC samples taken
 
-	// memory allocation
-	// rddata_16 = (unsigned int*) malloc(samples * sizeof(unsigned int));
-	rddata = (unsigned int *) malloc(samples * sizeof(unsigned int));
+ // memory allocation
+ // rddata_16 = (unsigned int*) malloc(samples * sizeof(unsigned int));
+ rddata = (unsigned int *) malloc(samples * sizeof(unsigned int));
 
-	tx_acq(startfreq, stopfreq, spacfreq, sampfreq, samples);
+ tx_acq(startfreq, stopfreq, spacfreq, sampfreq, samples);
 
-	alt_write_word((h2p_ctrl_out_addr), (ctrl_out | TX_OPA_EN)); // re-enable the TX opamp (default)
+ alt_write_word((h2p_ctrl_out_addr), (ctrl_out | TX_OPA_EN)); // re-enable the TX opamp (default)
 
-	// close_system();
-	munmap_peripherals();
-	close_physical_memory_device();
+ // close_system();
+ munmap_peripherals();
+ close_physical_memory_device();
 
-	// free memory
-	// free (rddata_16);
-	free (rddata);
+ // free memory
+ // free (rddata_16);
+ free (rddata);
 
-	return 0;
-}
-//
+ return 0;
+ }
+ */
 
 /* CPMG Iterate
  // rename the output to "cpmg_iterate_raw" and define GET_RAW_DATA to get raw data.
@@ -2383,3 +2383,17 @@ int main(int argc, char * argv[])
 
  }
  */
+
+// standalone function // this main function doesn't rely on any other main functions (e.g. to initialize the system) to work on, unlike the main functions above
+int main(int argc, char * argv[])
+{
+	// init
+	open_physical_memory_device();
+	mmap_peripherals();
+	init_default_system_param();
+
+	// close_system();
+	munmap_peripherals();
+	close_physical_memory_device();
+	return 0;
+}
