@@ -467,6 +467,8 @@ void init_dac_ad5724r()
 	// read the current ctrl_out
 	ctrl_out = alt_read_word(h2p_ctrl_out_addr);
 
+	alt_write_word((h2p_dac_preamp_addr + SPI_SLAVESELECT_offst), 1); // set the slave select to 1
+
 	alt_write_word((h2p_dac_preamp_addr + SPI_TXDATA_offst),
 			WR_DAC | PWR_CNT_REG | DAC_A_PU | DAC_B_PU | DAC_C_PU | DAC_D_PU
 					| REF_PU); // power up reference voltage, dac A, dac B, dac C, and DAC D
@@ -1933,27 +1935,28 @@ void close_system()
  }
  */
 
-/* SPI for vbias and vvarac (rename the output to "preamp_tuning")
- int main(int argc, char * argv[]) {
- // printf("Preamp tuning with SPI\n");
+// SPI for vbias and vvarac (rename the output to "preamp_tuning")
+int main(int argc, char * argv[])
+{
+	// printf("Preamp tuning with SPI\n");
 
- // input parameters
- double vbias = atof(argv[1]);
- double vvarac = atof(argv[2]);
+	// input parameters
+	double vbias = atof(argv[1]);
+	double vvarac = atof(argv[2]);
 
- open_physical_memory_device();
- mmap_peripherals();
+	open_physical_memory_device();
+	mmap_peripherals();
 
- init_dac_ad5724r();			// power up the dac and init its operation
- // wr_dac_ad5724 IS A NEW FUNCTION AND IS NOT VERIFIED!!!!!
- wr_dac_ad5724r (h2p_dac_preamp_addr, DAC_A, vbias, DISABLE_MESSAGE); // vbias cannot exceed 1V, due to J310 transistor gate voltage
- wr_dac_ad5724r (h2p_dac_preamp_addr, DAC_B, vvarac, DISABLE_MESSAGE);
+	init_dac_ad5724r();			// power up the dac and init its operation
+	// wr_dac_ad5724 IS A NEW FUNCTION AND IS NOT VERIFIED!!!!!
+	wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_A, vbias, DISABLE_MESSAGE); // vbias cannot exceed 1V, due to J310 transistor gate voltage
+	wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_B, vvarac, DISABLE_MESSAGE);
 
- munmap_peripherals();
- close_physical_memory_device();
- return 0;
- }
- */
+	munmap_peripherals();
+	close_physical_memory_device();
+	return 0;
+}
+//
 
 /* I2C matching network control (rename the output to "i2c_mtch_ntwrk")
  int main(int argc, char * argv[]) {
@@ -2384,16 +2387,17 @@ void close_system()
  }
  */
 
-// standalone function // this main function doesn't rely on any other main functions (e.g. to initialize the system) to work on, unlike the main functions above
-int main(int argc, char * argv[])
-{
-	// init
-	open_physical_memory_device();
-	mmap_peripherals();
-	init_default_system_param();
+/* standalone function // this main function doesn't rely on any other main functions (e.g. to initialize the system) to work on, unlike the main functions above
+ int main(int argc, char * argv[])
+ {
+ // init
+ open_physical_memory_device();
+ mmap_peripherals();
+ init_default_system_param();
 
-	// close_system();
-	munmap_peripherals();
-	close_physical_memory_device();
-	return 0;
-}
+ // close_system();
+ munmap_peripherals();
+ close_physical_memory_device();
+ return 0;
+ }
+ */
