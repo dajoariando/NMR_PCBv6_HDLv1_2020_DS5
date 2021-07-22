@@ -1641,20 +1641,14 @@ void noise_iterate(double cpmg_freq, long unsigned scan_spacing_us,
 	fprintf(fptr, "fid_iterate([data_folder,'%s']);\n", foldername);
 	fclose(fptr);
 
-// print matlab script to analyze datas
-	sprintf(pathname, "current_folder.txt");
-	fptr = fopen(pathname, "w");
-	fprintf(fptr, "%s\n", foldername);
-	fclose(fptr);
-
 	int FILENAME_LENGTH = 100;
 	char *name;
 	name = (char*) malloc(FILENAME_LENGTH * sizeof(char));
 
 // initialize sum data
 	int Asum[samples_per_echo];
-	for (i = 0; i < samples_per_echo; i++)
-		Asum[i] = 0;
+	// for (i = 0; i < samples_per_echo; i++)
+	// 	Asum[i] = 0;
 
 	int iterate = 1;
 	for (iterate = 1; iterate <= number_of_iteration; iterate++)
@@ -1671,9 +1665,17 @@ void noise_iterate(double cpmg_freq, long unsigned scan_spacing_us,
 				enable_message);
 
 #ifdef GET_RAW_DATA
-		for (i = 0; i < samples_per_echo; i++)
-		// Asum[i] += rddata_16[i];
-		Asum[i] += rddata[i];
+		if (iterate == 1)
+		{
+			for (i = 0; i < samples_per_echo; i++)
+			// Asum[i] += rddata_16[i];
+			Asum[i] = rddata[i];
+		}
+		else
+		{
+			for (i = 0; i < samples_per_echo; i++)
+			Asum[i] += rddata[i];
+		}
 #endif
 	}
 
@@ -1682,6 +1684,12 @@ void noise_iterate(double cpmg_freq, long unsigned scan_spacing_us,
 	fptr = fopen(pathname, "w");
 	for (i = 0; i < samples_per_echo; i++)
 		fprintf(fptr, "%d\n", Asum[i]);
+	fclose(fptr);
+
+	// print the current folder
+	sprintf(pathname, "current_folder.txt");
+	fptr = fopen(pathname, "w");
+	fprintf(fptr, "%s\n", foldername);
 	fclose(fptr);
 
 	free(name);
@@ -1935,28 +1943,28 @@ void close_system()
  }
  */
 
-// SPI for vbias and vvarac (rename the output to "preamp_tuning")
-int main(int argc, char * argv[])
-{
-	// printf("Preamp tuning with SPI\n");
+/* SPI for vbias and vvarac (rename the output to "preamp_tuning")
+ int main(int argc, char * argv[])
+ {
+ // printf("Preamp tuning with SPI\n");
 
-	// input parameters
-	double vbias = atof(argv[1]);
-	double vvarac = atof(argv[2]);
+ // input parameters
+ double vbias = atof(argv[1]);
+ double vvarac = atof(argv[2]);
 
-	open_physical_memory_device();
-	mmap_peripherals();
+ open_physical_memory_device();
+ mmap_peripherals();
 
-	init_dac_ad5724r();			// power up the dac and init its operation
-	// wr_dac_ad5724 IS A NEW FUNCTION AND IS NOT VERIFIED!!!!!
-	wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_A, vbias, DISABLE_MESSAGE); // vbias cannot exceed 1V, due to J310 transistor gate voltage
-	wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_B, vvarac, DISABLE_MESSAGE);
+ init_dac_ad5724r();			// power up the dac and init its operation
+ // wr_dac_ad5724 IS A NEW FUNCTION AND IS NOT VERIFIED!!!!!
+ wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_A, vbias, DISABLE_MESSAGE); // vbias cannot exceed 1V, due to J310 transistor gate voltage
+ wr_dac_ad5724r(h2p_dac_preamp_addr, DAC_B, vvarac, DISABLE_MESSAGE);
 
-	munmap_peripherals();
-	close_physical_memory_device();
-	return 0;
-}
-//
+ munmap_peripherals();
+ close_physical_memory_device();
+ return 0;
+ }
+ */
 
 /* I2C matching network control (rename the output to "i2c_mtch_ntwrk")
  int main(int argc, char * argv[]) {
@@ -2289,43 +2297,43 @@ int main(int argc, char * argv[])
  }
  */
 
-/* noise Iterate (rename the output to "noise")
- int main(int argc, char * argv[])
- {
+// noise Iterate (rename the output to "noise")
+int main(int argc, char * argv[])
+{
 
- // input parameters
- double samp_freq = atof(argv[1]);
- long unsigned scan_spacing_us = atoi(argv[2]);
- unsigned int samples_per_echo = atoi(argv[3]);
- unsigned int number_of_iteration = atoi(argv[4]);
+	// input parameters
+	double samp_freq = atof(argv[1]);
+	long unsigned scan_spacing_us = atoi(argv[2]);
+	unsigned int samples_per_echo = atoi(argv[3]);
+	unsigned int number_of_iteration = atoi(argv[4]);
 
- // memory allocation
- #ifdef GET_RAW_DATA
- // rddata_16 = (unsigned int*)malloc(samples_per_echo*sizeof(unsigned int)); // added malloc to this routine only - other routines will need to be updated when required
- rddata = (int *)malloc(samples_per_echo*sizeof(unsigned int));// petrillo 2Feb2019
- #endif
+	// memory allocation
+#ifdef GET_RAW_DATA
+	// rddata_16 = (unsigned int*)malloc(samples_per_echo*sizeof(unsigned int)); // added malloc to this routine only - other routines will need to be updated when required
+	rddata = (int *)malloc(samples_per_echo*sizeof(unsigned int));// petrillo 2Feb2019
+#endif
 
- open_physical_memory_device();
- mmap_peripherals();
- init_default_system_param();
+	open_physical_memory_device();
+	mmap_peripherals();
+	init_default_system_param();
 
- double cpmg_freq = samp_freq / 4; // the building block that's used is still nmr cpmg, so the sampling frequency is fixed to 4*cpmg_frequency
- noise_iterate(cpmg_freq, scan_spacing_us, samples_per_echo,
- number_of_iteration, DISABLE_MESSAGE);
+	double cpmg_freq = samp_freq / 4; // the building block that's used is still nmr cpmg, so the sampling frequency is fixed to 4*cpmg_frequency
+	noise_iterate(cpmg_freq, scan_spacing_us, samples_per_echo,
+			number_of_iteration, DISABLE_MESSAGE);
 
- // close_system();
- munmap_peripherals();
- close_physical_memory_device();
+	// close_system();
+	munmap_peripherals();
+	close_physical_memory_device();
 
- // free memory
- #ifdef GET_RAW_DATA
- // free(rddata_16);	//freeing up allocated memory required for multiple calls from host
- free(rddata);//petrillo 2Feb2019
- #endif
+	// free memory
+#ifdef GET_RAW_DATA
+	// free(rddata_16);	//freeing up allocated memory required for multiple calls from host
+	free(rddata);//petrillo 2Feb2019
+#endif
 
- return 0;
- }
- */
+	return 0;
+}
+//
 
 /* parameter calculator (calculate the real delay and timing based on the verilog
  int main(int argc, char * argv[]) {
